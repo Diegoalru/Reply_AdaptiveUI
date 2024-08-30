@@ -21,19 +21,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowSize
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import com.example.reply.data.Email
+import androidx.compose.material3.Icon as Icon
 
 @Composable
 fun ReplyApp(
@@ -56,21 +64,24 @@ private fun ReplyNavigationWrapperUI(
         mutableStateOf(ReplyDestination.Inbox)
     }
 
-    // You will implement adaptive navigation here.
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.inverseOnSurface)
-    ) {
-        Box(modifier = Modifier.weight(1f)) {
-            content()
-        }
+    val windowSize = with (LocalDensity.current) {
+        currentWindowSize().toSize().toDpSize()
+    }
 
-        NavigationBar(modifier = Modifier.fillMaxWidth()) {
+    val layoutType = when {
+        windowSize.width >= 1200.dp -> NavigationSuiteType.NavigationDrawer
+        else -> NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(
+            currentWindowAdaptiveInfo()
+        )
+    }
+
+    NavigationSuiteScaffold(
+        layoutType = layoutType,
+        navigationSuiteItems = {
             ReplyDestination.entries.forEach {
-                NavigationBarItem(
+                item(
                     selected = it == selectedDestination,
-                    onClick = { /*TODO update selection*/ },
+                    onClick = { selectedDestination = it },
                     icon = {
                         Icon(
                             imageVector = it.icon,
@@ -83,6 +94,8 @@ private fun ReplyNavigationWrapperUI(
                 )
             }
         }
+    ) {
+        content()
     }
 }
 
